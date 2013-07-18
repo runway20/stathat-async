@@ -22,6 +22,5 @@ setup(
     author_email='jamie.matthews@gmail.com',
     url='https://github.com/j4mie/stathat-async',
     py_modules= ['stathatasync'],
-    install_requires=required,
     license='MIT',
 )
