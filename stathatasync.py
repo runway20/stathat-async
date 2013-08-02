@@ -25,11 +25,21 @@ from Queue import Queue
 from threading import Thread
 
 
-def worker(email, queue):
+def ns_key(namespace, key):
+    """Namespace the given key if given a namespace"""
+    if not namespace:
+        return key
+    else:
+        return '_'.join((namespace, key))
+
+
+def worker(email, namespace, queue):
     stats = stathat.StatHat(email)
 
     while True:
-        command, key, value = queue.get()
+        command, bare_key, value = queue.get()
+        key = ns_key(namespace, bare_key)
+
         if command == 'value':
             stats.value(key, value)
         if command == 'count':
@@ -39,14 +49,14 @@ def worker(email, queue):
 
 class StatHat(object):
 
-    def __init__(self, email):
+    def __init__(self, email, namespace=None):
         self.queue = Queue()
-        thread = Thread(target=worker, args=(email, self.queue))
+        thread = Thread(target=worker, args=(email, namespace, self.queue))
         thread.daemon = True
         thread.start()
 
     def value(self, key, value):
         self.queue.put(('value', key, value))
 
-    def count(self, key, count):
+    def count(self, key, count=1):
         self.queue.put(('count', key, count))
